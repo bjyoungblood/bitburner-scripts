@@ -43,7 +43,7 @@ const cannotWorkForFactions = ["Church of the Machine God", "Bladeburners", "Sha
 // These factions should ideally be completed in this order
 const preferredEarlyFactionOrder = [
     "Netburners", // Improve hash income, which is useful or critical for almost all BNs
-    "Tian Di Hui", "Aevum", // These give all the company_rep and faction_rep bonuses early game    
+    "Tian Di Hui", "Aevum", // These give all the company_rep and faction_rep bonuses early game
     "Daedalus", // Once we have all faction_rep boosting augs, there's no reason not to work towards Daedalus as soon as it's available/feasible so we can buy Red Pill
     "CyberSec", /* Quick, and NightSec aug depends on an aug from here */ "NiteSec", "Tetrads", // Cha augs to speed up earning company promotions
     "Bachman & Associates", // Boost company/faction rep for future augs
@@ -179,13 +179,13 @@ async function loadStartupData(ns) {
     };
 
     // Get some faction and augmentation information to decide what remains to be purchased
-    dictFactionFavors = await getNsDataThroughFile(ns, dictCommand('ns.getFactionFavor(o)'), '/Temp/getFactionFavors.txt', allKnownFactions);
-    const dictFactionAugs = await getNsDataThroughFile(ns, dictCommand('ns.getAugmentationsFromFaction(o)'), '/Temp/getAugmentationsFromFactions.txt', allKnownFactions);
+    dictFactionFavors = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getFactionFavor(o)'), '/Temp/getFactionFavors.txt', allKnownFactions);
+    const dictFactionAugs = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getAugmentationsFromFaction(o)'), '/Temp/getAugmentationsFromFactions.txt', allKnownFactions);
     const augmentationNames = [...new Set(Object.values(dictFactionAugs).flat())];
-    const dictAugRepReqs = await getNsDataThroughFile(ns, dictCommand('ns.getAugmentationRepReq(o)'), '/Temp/getAugmentationRepReqs.txt', augmentationNames);
-    const dictAugStats = await getNsDataThroughFile(ns, dictCommand('ns.getAugmentationStats(o)'), '/Temp/getAugmentationStats.txt', augmentationNames);
-    const ownedAugmentations = await getNsDataThroughFile(ns, `ns.getOwnedAugmentations(true)`, '/Temp/player-augs-purchased.txt');
-    const installedAugmentations = await getNsDataThroughFile(ns, `ns.getOwnedAugmentations()`, '/Temp/player-augs-installed.txt');
+    const dictAugRepReqs = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getAugmentationRepReq(o)'), '/Temp/getAugmentationRepReqs.txt', augmentationNames);
+    const dictAugStats = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getAugmentationStats(o)'), '/Temp/getAugmentationStats.txt', augmentationNames);
+    const ownedAugmentations = await getNsDataThroughFile(ns, `ns.singularity.getOwnedAugmentations(true)`, '/Temp/player-augs-purchased.txt');
+    const installedAugmentations = await getNsDataThroughFile(ns, `ns.singularity.getOwnedAugmentations()`, '/Temp/player-augs-installed.txt');
     // Based on what augmentations we own, we can change our own behaviour (e.g. whether to allow work to steal focus)
     hasFocusPenaly = !installedAugmentations.includes("Neuroreceptor Management Implant"); // Check if we have an augmentation that lets us not have to focus at work (always nicer if we can background it)
     shouldFocusAtWork = !options['no-focus'] && hasFocusPenaly; // Focus at work for the best rate of rep gain, unless focus activities are disabled via command line
@@ -268,7 +268,7 @@ async function mainLoop(ns) {
             }
         }
     }
-    // If bladeburner is currently active, but we do not yet have The Blade's Simulacrum decide, whether we pause working.        
+    // If bladeburner is currently active, but we do not yet have The Blade's Simulacrum decide, whether we pause working.
     if (7 in dictSourceFiles && !hasSimulacrum && !options['no-bladeburner-check'] && player.inBladeburner) {
         if (playerGang) { // Heuristic: If we're in a gang, its rep will give us access to most augs, we can take a break from working
             ns.print(`INFO: Gang will give us most augs, so pausing work to allow Bladeburner to operate.`);
@@ -360,7 +360,7 @@ async function mainLoop(ns) {
 // Ram-dodging helper, runs a command for all items in a list and returns a dictionary.
 const dictCommand = (command) => `Object.fromEntries(ns.args.map(o => [o, ${command}]))`;
 
-/** @param {NS} ns 
+/** @param {NS} ns
  * Prints a message, and also toasts it!
  * TODO: Now redundant with log from helpers, refactor all usages. */
 function announce(ns, msg, toastVariant = 'info') {
@@ -446,7 +446,7 @@ async function earnFactionInvite(ns, factionName) {
         workedForInvite = await crimeForKillsKarmaStats(ns, requiredKillsByFaction[factionName] || 0, requiredKarmaByFaction[factionName] || 0, requiredCombatByFaction[factionName] || 0);
 
     // Study for hack levels if that's what's keeping us
-    // Note: Check if we have insuffient hack to backdoor this faction server. If we have sufficient hack, we will "waitForInvite" below assuming an external script is backdooring ASAP 
+    // Note: Check if we have insuffient hack to backdoor this faction server. If we have sufficient hack, we will "waitForInvite" below assuming an external script is backdooring ASAP
     let serverReqHackingLevel = 0;
     if (requirement = requiredBackdoorByFaction[factionName]) {
         serverReqHackingLevel = await getServerRequiredHackLevel(ns, requirement);
@@ -480,7 +480,7 @@ async function earnFactionInvite(ns, factionName) {
                 `city ${player.city} does not have a university from which to take free computer science.`);
         if (studying)
             workedForInvite = await monitorStudies(ns, 'hacking', requirement);
-        // If we studied for hacking, and were awaiting a backdoor, spawn the backdoor script now  
+        // If we studied for hacking, and were awaiting a backdoor, spawn the backdoor script now
         if (workedForInvite && serverReqHackingLevel) {
             player = await getPlayerInfo(ns);
             if (player.hacking > requirement) {
@@ -516,8 +516,8 @@ async function earnFactionInvite(ns, factionName) {
         ns.print(`You must be a CO (e.g. CEO/CTO) of a company to earn an invite to ${factionName}. This may take a while!`);
         let factionConfig = companySpecificConfigs.find(f => f.name == factionName); // We set up Silhouette with a "company-specific-config" so that we can work for an invite like any megacorporation faction.
         let companyNames = preferredCompanyFactionOrder.map(f => companySpecificConfigs.find(cf => cf.name == f)?.companyName || f);
-        let favorByCompany = await getNsDataThroughFile(ns, dictCommand('ns.getCompanyFavor(o)'), '/Temp/getCompanyFavors.txt', companyNames);
-        let repByCompany = await getNsDataThroughFile(ns, dictCommand('ns.getCompanyRep(o)'), '/Temp/getCompanyReps.txt', companyNames);
+        let favorByCompany = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getCompanyFavor(o)'), '/Temp/getCompanyFavors.txt', companyNames);
+        let repByCompany = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getCompanyRep(o)'), '/Temp/getCompanyReps.txt', companyNames);
         // Change the company to work for into whichever company we can get to CEO fastest with. Minimize needed_rep/rep_gain_rate. CEO job is at 3.2e6 rep, so (3.2e6-current_rep)/(100+favor).
         factionConfig.companyName = companyNames.sort((a, b) => (3.2e6 - repByCompany[a]) / (100 + favorByCompany[a]) - (3.2e6 - repByCompany[b]) / (100 + favorByCompany[b]))[0];
         // Hack: We will be working indefinitely, so we rely on an external script (daemon + faction-manager) to join this faction for us, or for checkForNewPrioritiesInterval to elapse.
@@ -538,7 +538,7 @@ async function goToCity(ns, cityName) {
         ns.print(`Already in city ${cityName}`);
         return true;
     }
-    if (await getNsDataThroughFile(ns, `ns.travelToCity(ns.args[0])`, '/Temp/travel.txt', [cityName])) {
+    if (await getNsDataThroughFile(ns, `ns.singularity.travelToCity(ns.args[0])`, '/Temp/travel.txt', [cityName])) {
         lastActionRestart = Date.now();
         lastTravel = Date.now()
         announce(ns, `Travelled from ${player.city} to ${cityName}`, 'info');
@@ -565,7 +565,7 @@ export async function crimeForKillsKarmaStats(ns, reqKills, reqKarma, reqStats, 
     let crime, lastCrime, lastStatusUpdateTime;
     while (forever || player.strength < reqStats || player.defense < reqStats || player.dexterity < reqStats || player.agility < reqStats || player.numPeopleKilled < reqKills || -ns.heart.break() < reqKarma) {
         if (!forever && breakToMainLoop()) return ns.print('INFO: Interrupting crime to check on high-level priorities.');
-        let crimeChances = await getNsDataThroughFile(ns, `Object.fromEntries(ns.args.map(c => [c, ns.getCrimeChance(c)]))`, '/Temp/crime-chances.txt', bestCrimesByDifficulty);
+        let crimeChances = await getNsDataThroughFile(ns, `Object.fromEntries(ns.args.map(c => [c, ns.singularity.getCrimeChance(c)]))`, '/Temp/crime-chances.txt', bestCrimesByDifficulty);
         let needStats = player.strength < reqStats || player.defense < reqStats || player.dexterity < reqStats || player.agility < reqStats;
         let karma = -ns.heart.break();
         crime = crimeCount < 10 ? (crimeChances["homicide"] > 0.75 ? "homicide" : "mug") : // Start with a few fast & easy crimes to boost stats if we're just starting
@@ -577,7 +577,7 @@ export async function crimeForKillsKarmaStats(ns, reqKills, reqKarma, reqStats, 
             lastStatusUpdateTime = Date.now();
         }
         ns.tail(); // Force a tail window open when auto-criming, or else it's very difficult to stop if it was accidentally closed.
-        await ns.sleep(1 + (await getNsDataThroughFile(ns, 'ns.commitCrime(ns.args[0])', '/Temp/commitCrime.txt', [crime])));
+        await ns.sleep(1 + (await getNsDataThroughFile(ns, 'ns.singularity.commitCrime(ns.args[0])', '/Temp/commitCrime.txt', [crime])));
         while ((player = (await getPlayerInfo(ns))).crimeType == `commit ${crime}` || player.crimeType == crime) // If we woke up too early, wait a little longer for the crime to finish
             await ns.sleep(10);
         crimeCount++;
@@ -604,7 +604,7 @@ async function study(ns, focus, course, university = null) {
         if (!university)
             return announce(ns, `WARNING: Could not study '${course}' because we are in city '${playerCity}' without a university.`, 'warning');
     }
-    if (await getNsDataThroughFile(ns, `ns.universityCourse(ns.args[0], ns.args[1], ns.args[2])`, '/Temp/study.txt', [university, course, focus])) {
+    if (await getNsDataThroughFile(ns, `ns.singularity.universityCourse(ns.args[0], ns.args[1], ns.args[2])`, '/Temp/study.txt', [university, course, focus])) {
         lastActionRestart = Date.now();
         announce(ns, `Started studying '${course}' at '${university}`, 'success');
         return true;
@@ -638,7 +638,7 @@ export async function waitForFactionInvite(ns, factionName, maxWaitTime = waitFo
     ns.print(`Waiting for invite from faction "${factionName}"...`);
     let waitTime = maxWaitTime;
     do {
-        var invitations = await getNsDataThroughFile(ns, 'ns.checkFactionInvitations()', '/Temp/player-faction-invites.txt');
+        var invitations = await getNsDataThroughFile(ns, 'ns.singularity.checkFactionInvitations()', '/Temp/player-faction-invites.txt');
         var joinedFactions = (await getPlayerInfo(ns)).factions;
         if (invitations.includes(factionName) || joinedFactions.includes(factionName))
             break;
@@ -658,7 +658,7 @@ export async function tryJoinFaction(ns, factionName) {
     var joinedFactions = (await getPlayerInfo(ns)).factions;
     if (joinedFactions.includes(factionName))
         return true;
-    if (!(await getNsDataThroughFile(ns, `ns.joinFaction(ns.args[0])`, '/Temp/join-faction.txt', [factionName])))
+    if (!(await getNsDataThroughFile(ns, `ns.singularity.joinFaction(ns.args[0])`, '/Temp/join-faction.txt', [factionName])))
         return false;
     announce(ns, `Joined faction "${factionName}"`, 'success');
     return true;
@@ -674,7 +674,7 @@ async function getPlayerInfo(ns) {
 /** @param {NS} ns
  *  @returns {Promise<string[]>} List of new faction invites */
 async function checkFactionInvites(ns) {
-    return await getNsDataThroughFile(ns, 'ns.checkFactionInvitations()', '/Temp/checkFactionInvitations.txt');
+    return await getNsDataThroughFile(ns, 'ns.singularity.checkFactionInvitations()', '/Temp/checkFactionInvitations.txt');
 }
 
 /** @param {NS} ns
@@ -683,22 +683,22 @@ async function getGangInfo(ns) {
     return await getNsDataThroughFile(ns, 'ns.gang.inGang() ? ns.gang.getGangInformation() : false', '/Temp/gang-stats.txt')
 }
 
-/** @param {NS} ns 
+/** @param {NS} ns
  *  @returns {Promise<Number>} Current reputation with the specified faction */
 async function getFactionReputation(ns, factionName) {
-    return await getNsDataThroughFile(ns, `ns.getFactionRep(ns.args[0])`, '/Temp/getFactionRep.txt', [factionName]);
+    return await getNsDataThroughFile(ns, `ns.singularity.getFactionRep(ns.args[0])`, '/Temp/getFactionRep.txt', [factionName]);
 }
 
 /** @param {NS} ns
  *  @returns {Promise<Number>} Current reputation with the specified company */
 async function getCompanyReputation(ns, companyName) {
-    return await getNsDataThroughFile(ns, `ns.getCompanyRep(ns.args[0])`, '/Temp/getCompanyRep.txt', [companyName]);
+    return await getNsDataThroughFile(ns, `ns.singularity.getCompanyRep(ns.args[0])`, '/Temp/getCompanyRep.txt', [companyName]);
 }
 
 /** @param {NS} ns
  *  @returns {Promise<Number>} Current favour with the specified faction */
 async function getCurrentFactionFavour(ns, factionName) {
-    return await getNsDataThroughFile(ns, `ns.getFactionFavor(ns.args[0])`, '/Temp/getFactionFavor.txt', [factionName]);
+    return await getNsDataThroughFile(ns, `ns.singularity.getFactionFavor(ns.args[0])`, '/Temp/getFactionFavor.txt', [factionName]);
 }
 
 /** @param {NS} ns
@@ -707,7 +707,7 @@ async function getServerRequiredHackLevel(ns, serverName) {
     return await getNsDataThroughFile(ns, `ns.getServerRequiredHackingLevel(ns.args[0])`, '/Temp/getServerRequiredHackingLevel.txt', [serverName]);
 }
 
-/** A special check for when we unlock donations with Daedalus, this is usually a good time to reset. 
+/** A special check for when we unlock donations with Daedalus, this is usually a good time to reset.
  * @param {NS} ns */
 async function daedalusSpecialCheck(ns, favorRepRequired, currentReputation) {
     if (favorRepRequired == 0 || currentReputation < favorRepRequired) return false;
@@ -720,7 +720,7 @@ async function daedalusSpecialCheck(ns, favorRepRequired, currentReputation) {
 }
 
 let lastFactionWorkStatus = "";
-/** @param {NS} ns 
+/** @param {NS} ns
  * Checks how much reputation we need with this faction to either buy all augmentations or get 150 favour, then works to that amount.
  * */
 export async function workForSingleFaction(ns, factionName, forceUnlockDonations = false, forceBestAug = false, forceRep = undefined) {
@@ -817,12 +817,12 @@ export async function workForSingleFaction(ns, factionName, forceUnlockDonations
 
 /** Stop whatever focus work we're currently doing
  * @param {NS} ns */
-async function stop(ns) { return await getNsDataThroughFile(ns, `ns.stopAction()`, '/Temp/stopAction.txt'); }
+async function stop(ns) { return await getNsDataThroughFile(ns, `ns.singularity.stopAction()`, '/Temp/stopAction.txt'); }
 
 /** Start the specified faction work
  * @param {NS} ns */
 async function startWorkForFaction(ns, factionName, work, focus) {
-    return await getNsDataThroughFile(ns, `ns.workForFaction(ns.args[0], ns.args[1], ns.args[2])`, '/Temp/workForFaction.txt', [factionName, work, focus])
+    return await getNsDataThroughFile(ns, `ns.singularity.workForFaction(ns.args[0], ns.args[1], ns.args[2])`, '/Temp/workForFaction.txt', [factionName, work, focus])
 }
 
 /** Try all work types and see what gives the best rep gain with this faction!
@@ -848,7 +848,7 @@ async function detectBestFactionWork(ns, factionName) {
     return bestWork;
 }
 
-/** @param {NS} ns 
+/** @param {NS} ns
  *  @param {Array<string>} megacorpFactionsInPreferredOrder - The list of all corporate factions to work for, sorted in the order they should be worked for
  *  @param {Array<string>} megacorpFactionsInPreferredOrder - The list of all corporate factions, sorted in the order they should be worked for
  * */
@@ -903,7 +903,7 @@ const serverByCompany = { "Bachman & Associates": "b-and-a", "ECorp": "ecorp", "
 /** Apply to the specified role at the specified company
  * @param {NS} ns */
 async function tryApplyToCompany(ns, company, role) {
-    return await getNsDataThroughFile(ns, `ns.applyToCompany(ns.args[0], ns.args[1])`, '/Temp/applyToCompany.txt', [company, role])
+    return await getNsDataThroughFile(ns, `ns.singularity.applyToCompany(ns.args[0], ns.args[1])`, '/Temp/applyToCompany.txt', [company, role])
 }
 
 /** @param {NS} ns */
@@ -979,13 +979,13 @@ export async function workForMegacorpFactionInvite(ns, factionName, waitForInvit
         }
         await tryBuyReputation(ns);
 
-        // Regardless of the earlier promotion logic, always try for a promotion to make sure we don't miss a promotion due to buggy logic 
+        // Regardless of the earlier promotion logic, always try for a promotion to make sure we don't miss a promotion due to buggy logic
         if (await tryApplyToCompany(ns, companyName, currentRole))
             announce(ns, `Unexpected '${currentRole}' promotion from ${currentJob} to "${(await getPlayerInfo(ns)).jobs[companyName]}. Promotion logic must be off..."`, 'warning');
         // TODO: If we ever get rid of the below periodic restart-work, we will need to monitor for interruptions with player.workType == e.g. "Work for Company"
         if (!studying && (!working || (Date.now() - lastActionRestart >= restartWorkInteval) /* We must periodically restart work to collect Rep Gains */)) {
             // Work for the company (assume daemon is grinding hack XP as fast as it can, so no point in studying for that)
-            if (await getNsDataThroughFile(ns, `ns.workForCompany(ns.args[0], ns.args[1])`, '/Temp/workForCompany.txt', [companyName, shouldFocusAtWork])) {
+            if (await getNsDataThroughFile(ns, `ns.singularity.workForCompany(ns.args[0], ns.args[1])`, '/Temp/workForCompany.txt', [companyName, shouldFocusAtWork])) {
                 working = true;
                 if (shouldFocusAtWork) ns.tail(); // Force a tail window open to help the user kill this script if they accidentally closed the tail window and don't want to keep stealing focus
                 currentReputation = await getCompanyReputation(ns, companyName); // Update to capture the reputation earned when restarting work

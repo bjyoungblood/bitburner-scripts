@@ -44,7 +44,7 @@ export async function main(ns) {
 	// Step 1: Go to Aevum if we aren't already there. (Must be done manually if you don't have SF4)
 	if (ns.getPlayer().city != "Aevum") {
 		try {
-			if (ns.getPlayer().money < 200000 || !(await getNsDataThroughFile(ns, 'ns.travelToCity(ns.args[0])', '/Temp/travelToCity.txt', ["Aevum"])))
+			if (ns.getPlayer().money < 200000 || !(await getNsDataThroughFile(ns, 'ns.singularity.travelToCity(ns.args[0])', '/Temp/travelToCity.txt', ["Aevum"])))
 				return tailAndLog(ns, "ERROR: Sorry, you need at least 200k to travel to the casino.");
 		} catch (err) {
 			return tailAndLog(ns, "ERROR: You must manually travel to to Aevum to use this script until you get SF4");
@@ -77,7 +77,7 @@ export async function main(ns) {
 				await click(await findRetry(ns, "//div[(@role = 'button') and (contains(., 'City'))]"));
 				await click(await findRetry(ns, "//span[@aria-label = 'Iker Molina Casino']"));
 			} catch { // Use SF4 as a fallback, it's more reliable.
-				try { await getNsDataThroughFile(ns, 'ns.goToLocation(ns.args[0])', '/Temp/goToLocation.txt', ["Iker Molina Casino"]); }
+				try { await getNsDataThroughFile(ns, 'ns.singularity.goToLocation(ns.args[0])', '/Temp/goToLocation.txt', ["Iker Molina Casino"]); }
 				catch { return tailAndLog(ns, "ERROR: Failed to travel to the casino both using UI navigation and using SF4 as a fall-back."); }
 			}
 			// Step 2.3: Try to start the blackjack game
@@ -174,16 +174,16 @@ export async function main(ns) {
 }
 
 /** Forces the game to reload (without saving). Great for save scumming.
- * WARNING: Doesn't work if the user last ran the game with "Reload and kill all scripts" 
+ * WARNING: Doesn't work if the user last ran the game with "Reload and kill all scripts"
  * @param {NS} ns */
 async function reload(ns) {
 	eval("window").onbeforeunload = null; // Disable the unsaved changes warning before reloading
 	await ns.sleep(options['save-sleep-time']); // Yield execution for an instant incase the game needs to finish a save or something
-	location.reload(); // Force refresh the page without saving           
+	location.reload(); // Force refresh the page without saving
 	await ns.sleep(10000); // Keep the script alive to be safe. Presumably the page reloads before this completes.
 }
 
-/** @param {NS} ns 
+/** @param {NS} ns
  *  Helper to kill all scripts on all other servers, except this one **/
 async function killAllOtherScripts(ns, removeRemoteFiles) {
 	// Kill processes on home (except this one)
@@ -209,13 +209,13 @@ async function killAllOtherScripts(ns, removeRemoteFiles) {
 	}
 }
 
-/** @param {NS} ns 
+/** @param {NS} ns
  *  Run when we can no longer gamble at the casino (presumably because we've been kicked out) **/
 async function onCompletion(ns) {
 	await ns.write(ran_flag, true, "w"); // Write an file indicating we think we've been kicked out of the casino.
 	log(ns, "SUCCESS: We've been kicked out of the casino.", true);
 
-	// Run the completion script before shutting down    
+	// Run the completion script before shutting down
 	let completionScript = options['on-completion-script'];
 	if (!completionScript) return;
 	let completionArgs = options['on-completion-script-args'];
@@ -260,7 +260,7 @@ function shouldHitAdvanced(ns, playerCountElem) {
 	}
 	if (player >= 17) return false; // Stay on Hard 17 or higher
 	if (player >= 13 && dealer <= 6) return false; // Stay if player has 13-16 and dealer shows 6 or less.
-	if (player == 12 && 4 <= dealer && dealer <= 6) return false; // Stay if player has 12 and dealer has 4 to 6	
+	if (player == 12 && 4 <= dealer && dealer <= 6) return false; // Stay if player has 12 and dealer has 4 to 6
 	return true;// Otherwise Hit
 }
 function getDealerCount() {

@@ -131,8 +131,8 @@ export async function main(ns) {
     joinedFactions = ignorePlayerData ? [] : playerData.factions;
     log(ns, 'In factions: ' + joinedFactions);
     // Get owned augmentations (whether they've been installed or not). Ignore strNF because you can always buy more.
-    ownedAugmentations = await getNsDataThroughFile(ns, 'ns.getOwnedAugmentations(true)', '/Temp/player-augs-purchased.txt');
-    const installedAugmentations = await getNsDataThroughFile(ns, 'ns.getOwnedAugmentations()', '/Temp/player-augs-installed.txt');
+    ownedAugmentations = await getNsDataThroughFile(ns, 'ns.singularity.getOwnedAugmentations(true)', '/Temp/player-augs-purchased.txt');
+    const installedAugmentations = await getNsDataThroughFile(ns, 'ns.singularity.getOwnedAugmentations()', '/Temp/player-augs-installed.txt');
     augsAwaitingInstall = ownedAugmentations.length - installedAugmentations.length;
     if (options['neuroflux-disabled']) omitAugs.push(strNF);
     simulatedOwnedAugmentations = ignorePlayerData ? [] : ownedAugmentations.filter(a => a != strNF);
@@ -233,7 +233,7 @@ const dictCommand = (command) => `Object.fromEntries(ns.args.map(o => [o, ${comm
 /** @param {NS} ns **/
 async function updateFactionData(ns, factionsToOmit) {
     // Gather a list of all faction names to collect information about. Start with any player joined and invited factions
-    const invitations = await getNsDataThroughFile(ns, 'ns.checkFactionInvitations()', '/Temp/checkFactionInvitations.txt');
+    const invitations = await getNsDataThroughFile(ns, 'ns.singularity.checkFactionInvitations()', '/Temp/checkFactionInvitations.txt');
     factionNames = joinedFactions.concat(invitations);
     // Add in factions the user hasn't seen. All factions by default, or a small subset of easy-access factions if --hide-locked-factions is set
     factionNames.push(...(options['hide-locked-factions'] ? easyAccessFactions : allFactions).filter(f => !factionNames.includes(f)));
@@ -246,11 +246,11 @@ async function updateFactionData(ns, factionsToOmit) {
     log(ns, `We "know" about ${factionNames.length} factions, and will omit ${factionsToOmit.length} of them.`);
     factionNames = factionNames.filter(f => !factionsToOmit.includes(f));
 
-    let dictFactionAugs = await getNsDataThroughFile(ns, dictCommand('ns.getAugmentationsFromFaction(o)'), '/Temp/getAugmentationsFromFactions.txt', factionNames);
-    let dictFactionReps = await getNsDataThroughFile(ns, dictCommand('ns.getFactionRep(o)'), '/Temp/getFactionReps.txt', factionNames);
-    let dictFactionFavors = await getNsDataThroughFile(ns, dictCommand('ns.getFactionFavor(o)'), '/Temp/getFactionFavors.txt', factionNames);
+    let dictFactionAugs = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getAugmentationsFromFaction(o)'), '/Temp/getAugmentationsFromFactions.txt', factionNames);
+    let dictFactionReps = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getFactionRep(o)'), '/Temp/getFactionReps.txt', factionNames);
+    let dictFactionFavors = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getFactionFavor(o)'), '/Temp/getFactionFavors.txt', factionNames);
 
-    // Need information about our gang to work around a TRP bug - gang faction appears to have it available, but it's not (outside of BN2)  
+    // Need information about our gang to work around a TRP bug - gang faction appears to have it available, but it's not (outside of BN2)
     if (gangFaction && playerData.bitNodeN != 2)
         dictFactionAugs[gangFaction] = dictFactionAugs[gangFaction]?.filter(a => a != "The Red Pill");
 
@@ -276,10 +276,10 @@ async function updateFactionData(ns, factionsToOmit) {
 /** @param {NS} ns **/
 async function updateAugmentationData(ns, desiredAugs) {
     const augmentationNames = [...new Set(Object.values(factionData).flatMap(f => f.augmentations))]; // augmentations.slice();
-    const dictAugRepReqs = await getNsDataThroughFile(ns, dictCommand('ns.getAugmentationRepReq(o)'), '/Temp/getAugmentationRepReqs.txt', augmentationNames);
-    const dictAugPrices = await getNsDataThroughFile(ns, dictCommand('ns.getAugmentationPrice(o)'), '/Temp/getAugmentationPrices.txt', augmentationNames);
-    const dictAugStats = await getNsDataThroughFile(ns, dictCommand('ns.getAugmentationStats(o)'), '/Temp/getAugmentationStats.txt', augmentationNames);
-    const dictAugPrereqs = await getNsDataThroughFile(ns, dictCommand('ns.getAugmentationPrereq(o)'), '/Temp/getAugmentationPrereqs.txt', augmentationNames);
+    const dictAugRepReqs = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getAugmentationRepReq(o)'), '/Temp/getAugmentationRepReqs.txt', augmentationNames);
+    const dictAugPrices = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getAugmentationPrice(o)'), '/Temp/getAugmentationPrices.txt', augmentationNames);
+    const dictAugStats = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getAugmentationStats(o)'), '/Temp/getAugmentationStats.txt', augmentationNames);
+    const dictAugPrereqs = await getNsDataThroughFile(ns, dictCommand('ns.singularity.getAugmentationPrereq(o)'), '/Temp/getAugmentationPrereqs.txt', augmentationNames);
     augmentationData = Object.fromEntries(augmentationNames.map(aug => [aug, {
         name: aug,
         displayName: aug,
@@ -370,7 +370,7 @@ async function joinFactions(ns, forceJoinFactions) {
         else {
             log(ns, `Joining faction ${faction.name} which has ${desiredAugs.length} desired augmentations: ${desiredAugs}`);
             let response;
-            if (response = await getNsDataThroughFile(ns, `ns.joinFaction(ns.args[0])`, '/Temp/join-faction.txt', [faction.name])) {
+            if (response = await getNsDataThroughFile(ns, `ns.singularity.joinFaction(ns.args[0])`, '/Temp/join-faction.txt', [faction.name])) {
                 faction.joined = true;
                 faction.augmentations.forEach(aug => accessibleAugmentations.add(aug));
                 joinedFactions.push(faction.name);
@@ -440,7 +440,7 @@ function sortAugs(ns, augs = []) {
     return augs;
 }
 
-/** @param {NS} ns 
+/** @param {NS} ns
  * Display all information about all augmentations, including lists of available / desired / affordable augmentations in their optimal purchase order.  */
 async function manageUnownedAugmentations(ns, ignoredAugs) {
     const bitNodeMults = await tryGetBitNodeMultipliers(ns, false) || { DaedalusAugsRequirement: 1 };
@@ -482,7 +482,7 @@ async function manageUnownedAugmentations(ns, ignoredAugs) {
             (options.purchase ? '' : ' Run with the --purchase flag to make the purchase.'), printToTerminal);
 }
 
-/** @param {[]} sortedAugs 
+/** @param {[]} sortedAugs
  * Helper to compute the total rep cost for augmentations, including the cost of donating for access. */
 function computeCosts(sortedAugs) {
     const repCostByFaction = computeAugsRepReqDonationByFaction(sortedAugs);
@@ -514,7 +514,7 @@ function filterMissingPrereqs(ns, subset) {
 }
 
 /** Helper to generate outputs for different subsets of the augmentations, each in optimal sort order
- * @param {NS} ns 
+ * @param {NS} ns
  * @param {boolean|undefined} printList - if undefined => automatically print if sort order changed
  *  */
 async function manageFilteredSubset(ns, outputRows, subsetName, subset, printList = undefined, removeMissingPrereqs = true, reorder = true) {
@@ -538,7 +538,7 @@ async function manageFilteredSubset(ns, outputRows, subsetName, subset, printLis
     return subsetSorted;
 }
 
-/** @param {NS} ns 
+/** @param {NS} ns
  * Prepares a "purchase order" of augs that we can afford.
  * Note: Stores this info in global properties `purchaseableAugs` and `purchaseFactionDonations` so that a final action in the main method will do the purchase. */
 async function managePurchaseableAugs(ns, outputRows, accessibleAugs) {
@@ -711,7 +711,7 @@ async function managePurchaseableAugs(ns, outputRows, accessibleAugs) {
     if (nextUpNf) outputRows.push(nextUpNf);
 };
 
-/** @param {NS} ns 
+/** @param {NS} ns
  * Find out the optimal set of factions and rep-donations required to access them */
 function computeAugsRepReqDonationByFaction(augmentations) {
     const repCostByFaction = {};
@@ -737,7 +737,7 @@ function computeAugsRepReqDonationByFaction(augmentations) {
     return repCostByFaction;
 }
 
-/** @param {NS} ns 
+/** @param {NS} ns
  * Donate any required rep and purchase the desired augmentations */
 async function purchaseDesiredAugs(ns) {
     let totalRepCost = Object.values(purchaseFactionDonations).reduce((t, r) => t + r, 0);
@@ -757,7 +757,7 @@ async function purchaseDesiredAugs(ns) {
             `(We had ${formatMoney(startingPlayerMoney)} at startup). Will proceed with buying most of the purchase order.`, printToTerminal, 'warning');
     // Donate to factions if necessary (using a ram-dodging script of course)
     if (Object.keys(purchaseFactionDonations).length > 0 && Object.values(purchaseFactionDonations).some(v => v > 0)) {
-        if (await getNsDataThroughFile(ns, 'JSON.parse(ns.args[0]).reduce((success, o) => success && ns.donateToFaction(o.faction, o.repDonation), true)',
+        if (await getNsDataThroughFile(ns, 'JSON.parse(ns.args[0]).reduce((success, o) => success && ns.singularity.donateToFaction(o.faction, o.repDonation), true)',
             '/Temp/facman-donate.txt', [JSON.stringify(Object.keys(purchaseFactionDonations).map(f => ({ faction: f, repDonation: purchaseFactionDonations[f] })))]))
             log(ns, `SUCCESS: Donated to ${Object.keys(purchaseFactionDonations).length} factions to gain access to desired augmentations.`, printToTerminal, 'success')
         else
@@ -766,7 +766,7 @@ async function purchaseDesiredAugs(ns) {
     // Purchase desired augs (using a ram-dodging script of course)
     if (purchaseableAugs.length == 0)
         return log(ns, `INFO: Cannot afford to buy any augmentations at this time.`, printToTerminal)
-    const purchased = await getNsDataThroughFile(ns, 'JSON.parse(ns.args[0]).reduce((total, o) => total + (ns.purchaseAugmentation(o.faction, o.augmentation) ? 1 : 0), 0)',
+    const purchased = await getNsDataThroughFile(ns, 'JSON.parse(ns.args[0]).reduce((total, o) => total + (ns.singularity.purchaseAugmentation(o.faction, o.augmentation) ? 1 : 0), 0)',
         '/Temp/facman-purchase-augs.txt', [JSON.stringify(purchaseableAugs.map(aug => ({ faction: aug.getFromJoined(), augmentation: aug.name })))]);
     if (purchased == purchaseableAugs.length)
         log(ns, `SUCCESS: Purchased ${purchased} desired augmentations in optimal order!`, printToTerminal, 'success')
@@ -800,7 +800,7 @@ function displayFactionSummary(ns, sortBy, unique, overrideFinishedFactions, exc
     joinedFactions.push(...overrideFinishedFactions.filter(f => !joinedFactions.includes(f)));
     for (const faction of overrideFinishedFactions)
         simulatedOwnedAugmentations.push(...factionData[faction]?.unownedAugmentations() || []);
-    // Grab disctinct augmentations stats 
+    // Grab disctinct augmentations stats
     const relevantAugStats = allAugStats.filter(s => !excludedStats.find(excl => s.includes(excl)) &&
         undefined !== summaryFactions.find(f => f.unownedAugmentations().find(aug => 1 != (augmentationData[aug].stats[s] || 1))));
     summary += `${summaryFactions.length} factions with augmentations (✓=Joined ✉=Invited ✗=Locked, sorted by total ${sortBy}):`;

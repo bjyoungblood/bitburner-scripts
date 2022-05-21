@@ -60,7 +60,7 @@ export async function main(ns) {
     }
 }
 
-/** @param {NS} ns 
+/** @param {NS} ns
  * Purchases augmentations for sleeves */
 async function manageSleeveAugs(ns, i, budget) {
     // Retrieve and cache the set of available sleeve augs (cached temporarily, but not forever, in case rules around this change)
@@ -91,7 +91,7 @@ async function manageSleeveAugs(ns, i, budget) {
     return 0;
 }
 
-/** @param {NS} ns 
+/** @param {NS} ns
  * Main loop that gathers data, checks on all sleeves, and manages them. */
 async function mainLoop(ns) {
     // Update info
@@ -155,7 +155,7 @@ async function mainLoop(ns) {
 
 
 /** Picks the best task for a sleeve, and returns the information to assign and give status updates for that task.
- * @param {NS} ns 
+ * @param {NS} ns
  * @param {Player} playerInfo
  * @param {SleeveSkills | SleeveInformation | SleeveTask} sleeve */
 async function pickSleeveTask(ns, playerInfo, i, sleeve, canTrain) {
@@ -218,12 +218,12 @@ async function pickSleeveTask(ns, playerInfo, i, sleeve, canTrain) {
     var crime = options.crime || (await calculateCrimeChance(ns, sleeve, "homicide")) >= options['homicide-chance-threshold'] ? 'homicide' : 'mug';
     return [`commit ${crime} `, `ns.sleeve.setToCommitCrime(ns.args[0], ns.args[1])`, [i, crime],
     /*   */ `committing ${crime} with chance ${((await calculateCrimeChance(ns, sleeve, crime)) * 100).toFixed(2)}% ` +
-    /*   */ (options.crime || crime == "homicide" ? '' : // If auto-criming, user may be curious how close we are to switching to homicide 
+    /*   */ (options.crime || crime == "homicide" ? '' : // If auto-criming, user may be curious how close we are to switching to homicide
     /*   */     ` (Note: Homicide chance would be ${((await calculateCrimeChance(ns, sleeve, "homicide")) * 100).toFixed(2)}% `)];
 }
 
-/** Sets a sleeve to its designated task, with some extra error handling logic for working for factions. 
- * @param {NS} ns 
+/** Sets a sleeve to its designated task, with some extra error handling logic for working for factions.
+ * @param {NS} ns
  * @param {Player} playerInfo */
 async function setSleeveTask(ns, playerInfo, i, designatedTask, command, args) {
     let strAction = `Set sleeve ${i} to ${designatedTask} `;
@@ -253,7 +253,7 @@ async function setSleeveTask(ns, playerInfo, i, designatedTask, command, args) {
 }
 
 let promptedForTrainingBudget = false;
-/** @param {NS} ns 
+/** @param {NS} ns
  * For when we are at risk of going into debt while training with sleeves.
  * Contains some fancy logic to spawn an external script that will prompt the user and wait for an answer. */
 async function promptForTrainingBudget(ns) {
@@ -265,12 +265,12 @@ async function promptForTrainingBudget(ns) {
             `await ns.write("${trainingReserveFile}", ans ? '-1E100' : '0', "w")`, '/Temp/sleeves-training-reserve-prompt.js');
 }
 
-/** @param {NS} ns 
+/** @param {NS} ns
  * Calculate the chance a sleeve has of committing homicide successfully. */
 async function calculateCrimeChance(ns, sleeve, crimeName) {
     // If not in the cache, retrieve this crime's stats
     const crimeStats = cachedCrimeStats[crimeName] ?? (cachedCrimeStats[crimeName] = (4 in ownedSourceFiles ?
-        await getNsDataThroughFile(ns, `ns.getCrimeStats(ns.args[0])`, '/Temp/get-crime-stats.txt', [crimeName]) :
+        await getNsDataThroughFile(ns, `ns.singularity.getCrimeStats(ns.args[0])`, '/Temp/get-crime-stats.txt', [crimeName]) :
         // Hack: To support players without SF4, hard-code values as of the current release
         crimeName == "homicide" ? { difficulty: 1, strength_success_weight: 2, defense_success_weight: 2, dexterity_success_weight: 0.5, agility_success_weight: 0.5 } :
             crimeName == "mug" ? { difficulty: 0.2, strength_success_weight: 1.5, defense_success_weight: 0.5, dexterity_success_weight: 1.5, agility_success_weight: 0.5, } :
