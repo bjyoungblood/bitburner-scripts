@@ -43,6 +43,9 @@ export async function main(ns) {
     // Main stats update loop
     while (true) {
         try {
+            const stkPortfolio = await getStocksValue(ns);
+            addHud('Net Wrth', formatMoney(stkPortfolio + playerInfo.money));
+
             // Show what bitNode we're currently playing in
             addHud("BitNode", `${bitNode}.${1 + (dictSourceFiles[bitNode] || 0)}`,
                 `Detected as being one more than your current owned SF level (${dictSourceFiles[bitNode] || 0}) in the current bitnode (${bitNode}).`);
@@ -62,7 +65,6 @@ export async function main(ns) {
 
             // Show Stocks (only if stockmaster.js isn't already doing the same)
             if (!options['hide-stocks'] && !doc.getElementById("stock-display-1")) {
-                const stkPortfolio = await getStocksValue(ns);
                 if (stkPortfolio > 0) addHud("Stock", formatMoney(stkPortfolio)); // Also, don't bother showing a section for stock if we aren't holding anything
             }
 
